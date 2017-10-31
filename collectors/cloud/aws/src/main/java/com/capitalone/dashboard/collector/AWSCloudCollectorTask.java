@@ -134,6 +134,7 @@ public class AWSCloudCollectorTask extends CollectorTask<AWSCloudCollector> {
     }
 
     private Map<String, List<CloudInstance>> collectInstances() {
+        log("In collectInstances...");
         Map<String, List<CloudInstance>> cloudInstanceMap = awsClient.getCloundInstances(cloudInstanceRepository);
         for (String account : cloudInstanceMap.keySet()) {
             Collection<CloudInstance> collectedInstances = cloudInstanceMap.get(account);

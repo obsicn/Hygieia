@@ -1,4 +1,4 @@
-package com.capitalone.dashboard.collector;
+package aws;
 
 import com.amazonaws.auth.AWSCredentialsProviderChain;
 import com.amazonaws.auth.InstanceProfileCredentialsProvider;
@@ -31,11 +31,12 @@ import com.capitalone.dashboard.model.NameValue;
 import com.capitalone.dashboard.repository.CloudInstanceRepository;
 import com.capitalone.dashboard.repository.CloudSubNetworkRepository;
 import com.capitalone.dashboard.repository.CloudVirtualNetworkRepository;
+import com.google.gson.Gson;
+
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
@@ -50,11 +51,10 @@ import java.util.concurrent.TimeUnit;
 /**
  * Collects the instance specific data from AWS.
  */
-@Component
 @SuppressWarnings("PMD")
 public class DefaultAWSCloudClient implements AWSCloudClient {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(AWSCloudCollectorTask.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultAWSCloudClient.class);
     private static final long ONE_DAY_MILLI_SECOND = TimeUnit.DAYS.toMillis(1);
     private final AWSCloudSettings settings;
     private static AmazonEC2Client ec2Client;
@@ -79,8 +79,6 @@ public class DefaultAWSCloudClient implements AWSCloudClient {
 
         ec2Client = new AmazonEC2Client(new AWSCredentialsProviderChain(new InstanceProfileCredentialsProvider(),
                 new ProfileCredentialsProvider(settings.getProfile())));
-        
-        ec2Client.setEndpoint("https://ec2.us-west-2.amazonaws.com");
 
         cloudWatchClient = new AmazonCloudWatchClient(new AWSCredentialsProviderChain(new InstanceProfileCredentialsProvider(),
                 new ProfileCredentialsProvider(settings.getProfile())));
@@ -99,6 +97,11 @@ public class DefaultAWSCloudClient implements AWSCloudClient {
         System.out.println("In getCloudInstances");
         DescribeInstancesRequest request = new DescribeInstancesRequest();
         DescribeInstancesResult instanceResult = ec2Client.describeInstances(request);
+        
+        Gson gson = new Gson();
+        
+        System.out.println(gson.toJson(instanceResult));
+        
         DescribeAutoScalingInstancesResult autoScaleResult = autoScalingClient.describeAutoScalingInstances();
         List<AutoScalingInstanceDetails> autoScalingInstanceDetails = autoScaleResult.getAutoScalingInstances();
         Map<String, String> autoScaleMap = new HashMap<>();
